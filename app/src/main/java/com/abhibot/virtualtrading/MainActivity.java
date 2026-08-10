@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,809 +16,810 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
 
     private LinearLayout root;
 
     private double balance = 100000.0;
+    private double invested = 0.0;
 
-    private String symbol = "NIFTY 50";
-    private double price = 24500.0;
+    private String selectedSymbol = "NIFTY 50";
+    private double selectedPrice = 24500.0;
 
-    private final List<String> trades = new ArrayList<>();
+    private final ArrayList<String> orders = new ArrayList<>();
+    private final ArrayList<String> diary = new ArrayList<>();
+
+    private int dark = Color.rgb(15, 23, 42);
+    private int card = Color.rgb(30, 41, 59);
+    private int green = Color.rgb(22, 163, 74);
+    private int red = Color.rgb(220, 38, 38);
+    private int blue = Color.rgb(37, 99, 235);
+    private int white = Color.WHITE;
+    private int grey = Color.rgb(148, 163, 184);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setStatusBarColor(dark);
         dashboard();
     }
 
-    // ==============================
-    // BASIC SCREEN SETUP
-    // ==============================
+    // =========================================================
+    // BASIC UI
+    // =========================================================
 
     private void setup() {
 
-        ScrollView scrollView = new ScrollView(this);
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
 
         root = new LinearLayout(this);
-
         root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(20, 20, 20, 30);
+        root.setBackgroundColor(dark);
 
-        root.setPadding(
-                24,
-                28,
-                24,
-                40
-        );
+        scroll.addView(root);
 
-        root.setBackgroundColor(Color.WHITE);
-
-        scrollView.addView(root);
-
-        setContentView(scrollView);
+        setContentView(scroll);
     }
 
-    // ==============================
-    // TEXT
-    // ==============================
+    private TextView title(String text) {
 
-    private TextView text(
-            String value,
-            float size,
-            boolean bold
-    ) {
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextColor(white);
+        t.setTextSize(28);
+        t.setTypeface(null, Typeface.BOLD);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(5, 10, 5, 5);
 
-        TextView textView = new TextView(this);
+        root.addView(t);
 
-        textView.setText(value);
-
-        textView.setTextSize(size);
-
-        textView.setTextColor(Color.BLACK);
-
-        textView.setGravity(Gravity.CENTER);
-
-        textView.setPadding(
-                4,
-                10,
-                4,
-                10
-        );
-
-        if (bold) {
-            textView.setTypeface(
-                    null,
-                    Typeface.BOLD
-            );
-        }
-
-        return textView;
+        return t;
     }
 
-    // ==============================
-    // BUTTON
-    // ==============================
+    private TextView subtitle(String text) {
 
-    private Button button(String title) {
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextColor(grey);
+        t.setTextSize(15);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(5, 0, 5, 18);
 
-        Button button = new Button(this);
+        root.addView(t);
 
-        button.setText(title);
+        return t;
+    }
 
-        button.setTextSize(17);
+    private TextView label(String text) {
 
-        button.setAllCaps(false);
+        TextView t = new TextView(this);
+        t.setText(text);
+        t.setTextColor(white);
+        t.setTextSize(17);
+        t.setPadding(4, 14, 4, 8);
 
-        LinearLayout.LayoutParams params =
+        root.addView(t);
+
+        return t;
+    }
+
+    private GradientDrawable background(int color, float radius) {
+
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(color);
+        g.setCornerRadius(radius);
+        return g;
+    }
+
+    private Button button(String text) {
+
+        Button b = new Button(this);
+
+        b.setText(text);
+        b.setTextColor(white);
+        b.setTextSize(16);
+        b.setAllCaps(false);
+        b.setGravity(Gravity.CENTER);
+        b.setPadding(10, 5, 10, 5);
+
+        b.setBackground(background(card, 24));
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        58
+                );
+
+        p.setMargins(0, 7, 0, 7);
+
+        root.addView(b, p);
+
+        return b;
+    }
+
+    private Button coloredButton(String text, int color) {
+
+        Button b = button(text);
+        b.setBackground(background(color, 24));
+        return b;
+    }
+
+    private TextView cardText(String text) {
+
+        TextView t = new TextView(this);
+
+        t.setText(text);
+        t.setTextColor(white);
+        t.setTextSize(16);
+        t.setPadding(18, 18, 18, 18);
+        t.setBackground(background(card, 22));
+
+        LinearLayout.LayoutParams p =
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
 
-        params.setMargins(
-                0,
-                6,
-                0,
-                6
-        );
+        p.setMargins(0, 6, 0, 6);
 
-        root.addView(
-                button,
-                params
-        );
+        root.addView(t, p);
 
-        return button;
+        return t;
     }
 
-    // ==============================
-    // BACK BUTTON
-    // ==============================
-
-    private void backButton() {
-
-        Button back =
-                button("← Back to Dashboard");
-
-        back.setOnClickListener(
-                v -> dashboard()
-        );
-    }
-
-    // ==============================
-    // TOAST
-    // ==============================
-
-    private void message(String value) {
+    private void toast(String text) {
 
         Toast.makeText(
                 this,
-                value,
+                text,
                 Toast.LENGTH_SHORT
         ).show();
     }
 
-    // ==============================
-    // MONEY FORMAT
-    // ==============================
-
     private String money(double value) {
 
         return String.format(
-                java.util.Locale.US,
-                "%.2f",
+                Locale.US,
+                "₹%,.2f",
                 value
         );
     }
 
-    // ==============================
+    private void back() {
+
+        Button b = button("←  Back to Dashboard");
+
+        b.setOnClickListener(v -> dashboard());
+    }
+
+    // =========================================================
     // DASHBOARD
-    // ==============================
+    // =========================================================
 
     private void dashboard() {
 
         setup();
 
-        root.addView(
-                text(
-                        "AbhiBoT 2.0",
-                        30,
-                        true
-                )
+        title("AbhiBoT 2.0");
+        subtitle("VIRTUAL TRADING PLATFORM");
+
+        LinearLayout balanceCard = new LinearLayout(this);
+        balanceCard.setOrientation(LinearLayout.VERTICAL);
+        balanceCard.setGravity(Gravity.CENTER);
+        balanceCard.setPadding(20, 20, 20, 20);
+        balanceCard.setBackground(background(Color.rgb(30, 64, 175), 28));
+
+        TextView balanceTitle = new TextView(this);
+        balanceTitle.setText("AVAILABLE BALANCE");
+        balanceTitle.setTextColor(Color.rgb(191, 219, 254));
+        balanceTitle.setTextSize(13);
+        balanceTitle.setGravity(Gravity.CENTER);
+
+        TextView balanceValue = new TextView(this);
+        balanceValue.setText(money(balance));
+        balanceValue.setTextColor(white);
+        balanceValue.setTextSize(30);
+        balanceValue.setTypeface(null, Typeface.BOLD);
+        balanceValue.setGravity(Gravity.CENTER);
+
+        balanceCard.addView(balanceTitle);
+        balanceCard.addView(balanceValue);
+
+        root.addView(balanceCard);
+
+        cardText(
+                "MARKET STATUS\n"
+                        + "NIFTY 50     ₹24,500\n"
+                        + "BANK NIFTY   ₹55,000\n"
+                        + "SENSEX       ₹80,000"
         );
 
-        root.addView(
-                text(
-                        "Virtual Trading Dashboard",
-                        18,
-                        false
-                )
+        label("QUICK ACTIONS");
+
+        Button trade = coloredButton(
+                "⚡  START NEW TRADE",
+                blue
         );
+        trade.setOnClickListener(v -> tradeScreen());
 
-        Button virtualTrading =
-                button(
-                        "📊  Virtual Trading"
-                );
+        Button market = button("📊  VIRTUAL TRADING");
+        market.setOnClickListener(v -> virtualTrading());
 
-        virtualTrading.setOnClickListener(
-                v -> virtualTrading()
-        );
+        Button watch = button("★  WATCHLIST");
+        watch.setOnClickListener(v -> watchlist());
 
-        Button watchlist =
-                button(
-                        "⭐  Watchlist"
-                );
+        Button ordersButton = button("▣  ORDERS & POSITIONS");
+        ordersButton.setOnClickListener(v -> ordersScreen());
 
-        watchlist.setOnClickListener(
-                v -> watchlist()
-        );
+        Button diaryButton = button("▤  TRADING DIARY");
+        diaryButton.setOnClickListener(v -> diaryScreen());
 
-        Button startTrade =
-                button(
-                        "⚡  Start Trade"
-                );
+        Button profileButton = button("●  PROFILE");
+        profileButton.setOnClickListener(v -> profileScreen());
 
-        startTrade.setOnClickListener(
-                v -> startTrade()
-        );
+        Button settingsButton = button("⚙  SETTINGS");
+        settingsButton.setOnClickListener(v -> settingsScreen());
 
-        Button diary =
-                button(
-                        "📒  Trading Diary"
-                );
-
-        diary.setOnClickListener(
-                v -> diary()
-        );
-
-        Button profile =
-                button(
-                        "👤  Profile"
-                );
-
-        profile.setOnClickListener(
-                v -> profile()
-        );
-
-        Button settings =
-                button(
-                        "⚙  Settings"
-                );
-
-        settings.setOnClickListener(
-                v -> settings()
-        );
-
-        root.addView(
-                text(
-                        "Virtual Balance: ₹"
-                                + money(balance),
-                        17,
-                        true
-                )
-        );
-
-        root.addView(
-                text(
-                        "Mode: PAPER / VIRTUAL TRADING",
-                        17,
-                        false
-                )
+        subtitle(
+                "PAPER TRADING • NO REAL MONEY\n"
+                        + "Virtual Balance: " + money(balance)
         );
     }
 
-    // ==============================
+    // =========================================================
     // VIRTUAL TRADING
-    // ==============================
+    // =========================================================
 
     private void virtualTrading() {
 
         setup();
 
-        root.addView(
-                text(
-                        "Virtual Trading",
-                        28,
-                        true
-                )
+        title("Virtual Trading");
+        subtitle("SELECT MARKET");
+
+        marketCard(
+                "NIFTY 50",
+                24500
         );
 
-        root.addView(
-                text(
-                        "Balance: ₹"
-                                + money(balance),
-                        18,
-                        false
-                )
+        marketCard(
+                "BANK NIFTY",
+                55000
         );
 
-        root.addView(
-                text(
-                        "Select Instrument",
-                        21,
-                        true
-                )
+        marketCard(
+                "SENSEX",
+                80000
         );
 
-        Button nifty =
-                button(
-                        "NIFTY 50   ₹24,500"
-                );
-
-        nifty.setOnClickListener(
-                v -> {
-
-                    symbol = "NIFTY 50";
-
-                    price = 24500;
-
-                    message(
-                            "NIFTY 50 selected"
-                    );
-
-                    virtualTrading();
-                }
+        marketCard(
+                "FINNIFTY",
+                26000
         );
 
-        Button bankNifty =
-                button(
-                        "BANK NIFTY   ₹55,000"
-                );
-
-        bankNifty.setOnClickListener(
-                v -> {
-
-                    symbol = "BANK NIFTY";
-
-                    price = 55000;
-
-                    message(
-                            "BANK NIFTY selected"
-                    );
-
-                    virtualTrading();
-                }
+        marketCard(
+                "MIDCAP SELECT",
+                13500
         );
 
-        Button sensex =
-                button(
-                        "SENSEX   ₹80,000"
-                );
-
-        sensex.setOnClickListener(
-                v -> {
-
-                    symbol = "SENSEX";
-
-                    price = 80000;
-
-                    message(
-                            "SENSEX selected"
-                    );
-
-                    virtualTrading();
-                }
-        );
-
-        root.addView(
-                text(
-                        "Selected: "
-                                + symbol
-                                + "  ₹"
-                                + money(price),
-                        19,
-                        true
-                )
-        );
-
-        Button openTrade =
-                button(
-                        "⚡ Open Trade"
-                );
-
-        openTrade.setOnClickListener(
-                v -> startTrade()
-        );
-
-        backButton();
+        back();
     }
 
-    // ==============================
-    // START TRADE
-    // ==============================
-
-    private void startTrade() {
-
-        setup();
-
-        root.addView(
-                text(
-                        "Start Trade",
-                        28,
-                        true
-                )
-        );
-
-        root.addView(
-                text(
-                        symbol
-                                + "\nPrice: ₹"
-                                + money(price),
-                        18,
-                        false
-                )
-        );
-
-        EditText quantity =
-                new EditText(this);
-
-        quantity.setHint(
-                "Enter Quantity"
-        );
-
-        quantity.setText("1");
-
-        quantity.setInputType(2);
-
-        root.addView(quantity);
-
-        Button buy =
-                button(
-                        "🟢 BUY"
-                );
-
-        buy.setOnClickListener(
-                v -> {
-
-                    int qty =
-                            getQuantity(
-                                    quantity
-                            );
-
-                    if (qty <= 0) {
-                        return;
-                    }
-
-                    double amount =
-                            price * qty;
-
-                    if (amount > balance) {
-
-                        message(
-                                "Insufficient virtual balance"
-                        );
-
-                        return;
-                    }
-
-                    balance =
-                            balance - amount;
-
-                    trades.add(
-                            "BUY | "
-                                    + symbol
-                                    + " | Qty "
-                                    + qty
-                                    + " | ₹"
-                                    + money(price)
-                    );
-
-                    message(
-                            "Virtual BUY executed"
-                    );
-
-                    virtualTrading();
-                }
-        );
-
-        Button sell =
-                button(
-                        "🔴 SELL"
-                );
-
-        sell.setOnClickListener(
-                v -> {
-
-                    int qty =
-                            getQuantity(
-                                    quantity
-                            );
-
-                    if (qty <= 0) {
-                        return;
-                    }
-
-                    balance =
-                            balance
-                                    + (price * qty);
-
-                    trades.add(
-                            "SELL | "
-                                    + symbol
-                                    + " | Qty "
-                                    + qty
-                                    + " | ₹"
-                                    + money(price)
-                    );
-
-                    message(
-                            "Virtual SELL executed"
-                    );
-
-                    virtualTrading();
-                }
-        );
-
-        backButton();
-    }
-
-    // ==============================
-    // QUANTITY
-    // ==============================
-
-    private int getQuantity(
-            EditText editText
+    private void marketCard(
+            String symbol,
+            double price
     ) {
 
-        try {
+        Button b = button(
+                symbol + "\n" + money(price)
+        );
 
-            int quantity =
-                    Integer.parseInt(
-                            editText
-                                    .getText()
-                                    .toString()
-                                    .trim()
-                    );
+        b.setOnClickListener(v -> {
 
-            if (quantity <= 0) {
+            selectedSymbol = symbol;
+            selectedPrice = price;
 
-                message(
-                        "Quantity must be greater than 0"
-                );
-
-                return 0;
-            }
-
-            return quantity;
-
-        } catch (Exception e) {
-
-            message(
-                    "Enter a valid quantity"
-            );
-
-            return 0;
-        }
+            tradeScreen();
+        });
     }
 
-    // ==============================
+    // =========================================================
     // WATCHLIST
-    // ==============================
+    // =========================================================
 
     private void watchlist() {
 
         setup();
 
-        root.addView(
-                text(
-                        "⭐ Watchlist",
-                        28,
-                        true
-                )
-        );
+        title("Watchlist");
+        subtitle("MARKET WATCH");
 
-        watch(
-                "NIFTY 50",
-                24500
-        );
+        watchItem("NIFTY 50", 24500);
+        watchItem("BANK NIFTY", 55000);
+        watchItem("SENSEX", 80000);
+        watchItem("FINNIFTY", 26000);
+        watchItem("MIDCAP SELECT", 13500);
 
-        watch(
-                "BANK NIFTY",
-                55000
-        );
-
-        watch(
-                "SENSEX",
-                80000
-        );
-
-        watch(
-                "FINNIFTY",
-                26000
-        );
-
-        watch(
-                "MIDCAP SELECT",
-                13500
-        );
-
-        backButton();
+        back();
     }
 
-    private void watch(
-            String name,
-            double currentPrice
+    private void watchItem(
+            String symbol,
+            double price
     ) {
 
-        Button item =
-                button(
-                        name
-                                + "\n₹"
-                                + money(currentPrice)
-                );
-
-        item.setOnClickListener(
-                v -> {
-
-                    symbol = name;
-
-                    price = currentPrice;
-
-                    message(
-                            name
-                                    + " selected"
-                    );
-
-                    startTrade();
-                }
+        TextView item = cardText(
+                symbol
+                        + "\n"
+                        + money(price)
+                        + "     •     PAPER MARKET"
         );
+
+        item.setOnClickListener(v -> {
+
+            selectedSymbol = symbol;
+            selectedPrice = price;
+
+            tradeScreen();
+        });
     }
 
-    // ==============================
-    // TRADING DIARY
-    // ==============================
+    // =========================================================
+    // TRADE SCREEN
+    // =========================================================
 
-    private void diary() {
+    private void tradeScreen() {
 
         setup();
 
+        title("Place Virtual Trade");
+
+        subtitle(
+                selectedSymbol
+                        + "  •  "
+                        + money(selectedPrice)
+        );
+
+        cardText(
+                "AVAILABLE BALANCE\n"
+                        + money(balance)
+        );
+
+        label("ORDER TYPE");
+
+        Button marketOrder = button(
+                "MARKET ORDER  •  ACTIVE"
+        );
+
+        marketOrder.setOnClickListener(
+                v -> toast("Market order selected")
+        );
+
+        label("QUANTITY");
+
+        EditText quantity = new EditText(this);
+        quantity.setHint("Enter quantity");
+        quantity.setText("1");
+        quantity.setTextColor(white);
+        quantity.setHintTextColor(grey);
+        quantity.setTextSize(17);
+        quantity.setInputType(2);
+        quantity.setPadding(18, 0, 18, 0);
+        quantity.setBackground(background(card, 20));
+
         root.addView(
-                text(
-                        "📒 Trading Diary",
-                        28,
-                        true
+                quantity,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        58
                 )
         );
 
-        if (trades.isEmpty()) {
+        label("STOP LOSS");
 
-            root.addView(
-                    text(
-                            "No trades recorded yet.",
-                            18,
-                            false
-                    )
+        EditText stopLoss = new EditText(this);
+        stopLoss.setHint("Optional");
+        stopLoss.setTextColor(white);
+        stopLoss.setHintTextColor(grey);
+        stopLoss.setInputType(2);
+        stopLoss.setPadding(18, 0, 18, 0);
+        stopLoss.setBackground(background(card, 20));
+
+        root.addView(
+                stopLoss,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        58
+                )
+        );
+
+        label("TARGET");
+
+        EditText target = new EditText(this);
+        target.setHint("Optional");
+        target.setTextColor(white);
+        target.setHintTextColor(grey);
+        target.setInputType(2);
+        target.setPadding(18, 0, 18, 0);
+        target.setBackground(background(card, 20));
+
+        root.addView(
+                target,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        58
+                )
+        );
+
+        label("EXECUTE");
+
+        Button buy = coloredButton(
+                "BUY  •  LONG",
+                green
+        );
+
+        buy.setOnClickListener(v -> {
+
+            int qty = getQuantity(quantity);
+
+            if (qty <= 0) return;
+
+            double amount =
+                    selectedPrice * qty;
+
+            if (amount > balance) {
+
+                toast("Insufficient virtual balance");
+                return;
+            }
+
+            balance -= amount;
+            invested += amount;
+
+            String order =
+                    "BUY | "
+                            + selectedSymbol
+                            + " | Qty: "
+                            + qty
+                            + " | Entry: "
+                            + money(selectedPrice);
+
+            orders.add(order);
+            diary.add(order);
+
+            toast("BUY order executed");
+
+            dashboard();
+        });
+
+        Button sell = coloredButton(
+                "SELL  •  SHORT",
+                red
+        );
+
+        sell.setOnClickListener(v -> {
+
+            int qty = getQuantity(quantity);
+
+            if (qty <= 0) return;
+
+            double amount =
+                    selectedPrice * qty;
+
+            balance += amount;
+
+            String order =
+                    "SELL | "
+                            + selectedSymbol
+                            + " | Qty: "
+                            + qty
+                            + " | Entry: "
+                            + money(selectedPrice);
+
+            orders.add(order);
+            diary.add(order);
+
+            toast("SELL order executed");
+
+            dashboard();
+        });
+
+        back();
+    }
+
+    private int getQuantity(EditText e) {
+
+        try {
+
+            int q = Integer.parseInt(
+                    e.getText()
+                            .toString()
+                            .trim()
+            );
+
+            if (q <= 0) {
+
+                toast("Quantity must be greater than 0");
+                return 0;
+            }
+
+            return q;
+
+        } catch (Exception ex) {
+
+            toast("Enter a valid quantity");
+            return 0;
+        }
+    }
+
+    // =========================================================
+    // ORDERS
+    // =========================================================
+
+    private void ordersScreen() {
+
+        setup();
+
+        title("Orders & Positions");
+        subtitle("VIRTUAL PORTFOLIO");
+
+        cardText(
+                "AVAILABLE\n"
+                        + money(balance)
+                        + "\n\nINVESTED\n"
+                        + money(invested)
+        );
+
+        if (orders.isEmpty()) {
+
+            cardText(
+                    "No orders yet.\n\n"
+                            + "Your BUY / SELL trades will appear here."
             );
 
         } else {
 
-            root.addView(
-                    text(
-                            "Recorded Trades: "
-                                    + trades.size(),
-                            18,
-                            true
-                    )
+            label(
+                    "ORDER HISTORY  •  "
+                            + orders.size()
             );
 
-            for (String trade : trades) {
+            for (String order : orders) {
 
-                root.addView(
-                        text(
-                                "• " + trade,
-                                16,
-                                false
-                        )
-                );
+                cardText(order);
             }
         }
 
-        backButton();
+        Button newTrade =
+                coloredButton(
+                        "⚡ NEW TRADE",
+                        blue
+                );
+
+        newTrade.setOnClickListener(
+                v -> tradeScreen()
+        );
+
+        back();
     }
 
-    // ==============================
+    // =========================================================
+    // DIARY
+    // =========================================================
+
+    private void diaryScreen() {
+
+        setup();
+
+        title("Trading Diary");
+        subtitle("YOUR TRADING JOURNAL");
+
+        if (diary.isEmpty()) {
+
+            cardText(
+                    "No trades recorded.\n\n"
+                            + "Start a virtual trade to create your first diary entry."
+            );
+
+        } else {
+
+            label(
+                    "TRADE LOG  •  "
+                            + diary.size()
+            );
+
+            for (String item : diary) {
+
+                cardText(item);
+            }
+        }
+
+        back();
+    }
+
+    // =========================================================
     // PROFILE
-    // ==============================
+    // =========================================================
 
-    private void profile() {
+    private void profileScreen() {
 
         setup();
 
-        root.addView(
-                text(
-                        "👤 Profile",
-                        28,
-                        true
-                )
+        title("Profile");
+        subtitle("ABHIBOT ACCOUNT");
+
+        cardText(
+                "ACCOUNT TYPE\n"
+                        + "Virtual Trading Account\n\n"
+                        + "STATUS\n"
+                        + "Active\n\n"
+                        + "BALANCE\n"
+                        + money(balance)
         );
 
-        root.addView(
-                text(
-                        "Account: Virtual Trading",
-                        18,
-                        false
-                )
+        cardText(
+                "TOTAL ORDERS\n"
+                        + orders.size()
         );
 
-        root.addView(
-                text(
-                        "Current Balance: ₹"
-                                + money(balance),
-                        18,
-                        false
-                )
+        Button reset = coloredButton(
+                "RESET VIRTUAL ACCOUNT",
+                red
         );
 
-        root.addView(
-                text(
-                        "Trades: "
-                                + trades.size(),
-                        18,
-                        false
-                )
-        );
+        reset.setOnClickListener(v -> {
 
-        Button reset =
-                button(
-                        "Reset Virtual Account"
-                );
+            balance = 100000;
+            invested = 0;
+            orders.clear();
+            diary.clear();
 
-        reset.setOnClickListener(
-                v -> {
+            toast("Virtual account reset");
 
-                    balance = 100000;
+            profileScreen();
+        });
 
-                    trades.clear();
-
-                    message(
-                            "Virtual account reset"
-                    );
-
-                    profile();
-                }
-        );
-
-        backButton();
+        back();
     }
 
-    // ==============================
+    // =========================================================
     // SETTINGS
-    // ==============================
+    // =========================================================
 
-    private void settings() {
+    private void settingsScreen() {
 
         setup();
 
-        root.addView(
-                text(
-                        "⚙ Settings",
-                        28,
-                        true
-                )
+        title("Settings");
+        subtitle("ABHIBOT 2.0 CONFIGURATION");
+
+        cardText(
+                "TRADING MODE\n"
+                        + "PAPER / VIRTUAL TRADING"
         );
 
-        root.addView(
-                text(
-                        "Trading Mode: PAPER / VIRTUAL",
-                        18,
-                        false
-                )
-        );
-
-        root.addView(
-                text(
-                        "AbhiBoT 2.0",
-                        18,
-                        false
-                )
-        );
-
-        Button alerts =
+        Button notifications =
                 button(
-                        "🔔 Alerts & Notifications"
+                        "🔔  Notifications"
                 );
 
-        alerts.setOnClickListener(
-                v -> message(
-                        "Alerts module selected"
-                )
+        notifications.setOnClickListener(
+                v -> toast("Notifications settings opened")
         );
 
         Button security =
                 button(
-                        "🔐 Security"
+                        "🔐  Security"
                 );
 
         security.setOnClickListener(
-                v -> message(
-                        "Security settings selected"
-                )
+                v -> toast("Security settings opened")
         );
 
         Button broker =
                 button(
-                        "🔌 Broker API Configuration"
+                        "🔌  Broker API"
                 );
 
         broker.setOnClickListener(
-                v -> message(
-                        "Broker API configuration selected"
+                v -> brokerScreen()
+        );
+
+        Button about =
+                button(
+                        "ℹ  About AbhiBoT"
+                );
+
+        about.setOnClickListener(
+                v -> aboutScreen()
+        );
+
+        back();
+    }
+
+    // =========================================================
+    // BROKER
+    // =========================================================
+
+    private void brokerScreen() {
+
+        setup();
+
+        title("Broker API");
+        subtitle("OPTIONAL CONNECTION");
+
+        cardText(
+                "This version is PAPER TRADING only.\n\n"
+                        + "You can later configure broker APIs "
+                        + "for supported brokers."
+        );
+
+        EditText apiKey =
+                new EditText(this);
+
+        apiKey.setHint("Enter API Key");
+        apiKey.setTextColor(white);
+        apiKey.setHintTextColor(grey);
+        apiKey.setPadding(18, 0, 18, 0);
+        apiKey.setBackground(background(card, 20));
+
+        root.addView(
+                apiKey,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        58
                 )
         );
 
-        backButton();
+        Button save =
+                coloredButton(
+                        "SAVE API CONFIGURATION",
+                        blue
+                );
+
+        save.setOnClickListener(
+                v -> toast("API configuration saved locally")
+        );
+
+        back();
     }
 
-    // ==============================
-    // ANDROID BACK BUTTON
-    // ==============================
+    // =========================================================
+    // ABOUT
+    // =========================================================
+
+    private void aboutScreen() {
+
+        setup();
+
+        title("AbhiBoT 2.0");
+
+        subtitle(
+                "Virtual Trading Platform"
+        );
+
+        cardText(
+                "VERSION\n2.0\n\n"
+                        + "MODE\nPaper Trading\n\n"
+                        + "VIRTUAL CAPITAL\n"
+                        + money(balance)
+        );
+
+        back();
+    }
+
+    // =========================================================
+    // ANDROID BACK
+    // =========================================================
 
     @Override
     public void onBackPressed() {
 
         dashboard();
     }
-                        }
+    }
