@@ -4,15 +4,12 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,32 +20,39 @@ public class MainActivity extends Activity {
 
     private LinearLayout root;
 
-    // Virtual trading data
-    private double balance = 100000.00;
-    private String selectedSymbol = "NIFTY 50";
-    private double selectedPrice = 24500.00;
-    private int quantity = 1;
+    private double balance = 100000.0;
 
-    private final List<String> diary = new ArrayList<>();
+    private String symbol = "NIFTY 50";
+    private double price = 24500.0;
+
+    private final List<String> trades = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        showDashboard();
+        dashboard();
     }
 
-    // ============================================================
-    // BASIC UI HELPERS
-    // ============================================================
+    // ==============================
+    // BASIC SCREEN SETUP
+    // ==============================
 
-    private void createRoot() {
+    private void setup() {
 
         ScrollView scrollView = new ScrollView(this);
 
         root = new LinearLayout(this);
+
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(24, 30, 24, 40);
+
+        root.setPadding(
+                24,
+                28,
+                24,
+                40
+        );
+
         root.setBackgroundColor(Color.WHITE);
 
         scrollView.addView(root);
@@ -56,51 +60,55 @@ public class MainActivity extends Activity {
         setContentView(scrollView);
     }
 
-    private TextView title(String text) {
+    // ==============================
+    // TEXT
+    // ==============================
 
-        TextView tv = new TextView(this);
+    private TextView text(
+            String value,
+            float size,
+            boolean bold
+    ) {
 
-        tv.setText(text);
-        tv.setTextSize(28);
-        tv.setTypeface(null, Typeface.BOLD);
-        tv.setTextColor(Color.BLACK);
-        tv.setGravity(Gravity.CENTER);
-        tv.setPadding(0, 10, 0, 15);
+        TextView textView = new TextView(this);
 
-        return tv;
+        textView.setText(value);
+
+        textView.setTextSize(size);
+
+        textView.setTextColor(Color.BLACK);
+
+        textView.setGravity(Gravity.CENTER);
+
+        textView.setPadding(
+                4,
+                10,
+                4,
+                10
+        );
+
+        if (bold) {
+            textView.setTypeface(
+                    null,
+                    Typeface.BOLD
+            );
+        }
+
+        return textView;
     }
 
-    private TextView heading(String text) {
+    // ==============================
+    // BUTTON
+    // ==============================
 
-        TextView tv = new TextView(this);
-
-        tv.setText(text);
-        tv.setTextSize(21);
-        tv.setTypeface(null, Typeface.BOLD);
-        tv.setTextColor(Color.BLACK);
-        tv.setPadding(0, 20, 0, 10);
-
-        return tv;
-    }
-
-    private TextView text(String value) {
-
-        TextView tv = new TextView(this);
-
-        tv.setText(value);
-        tv.setTextSize(17);
-        tv.setTextColor(Color.DKGRAY);
-        tv.setPadding(5, 8, 5, 8);
-
-        return tv;
-    }
-
-    private Button menuButton(String text) {
+    private Button button(String title) {
 
         Button button = new Button(this);
 
-        button.setText(text);
+        button.setText(title);
+
         button.setTextSize(17);
+
         button.setAllCaps(false);
 
         LinearLayout.LayoutParams params =
@@ -109,528 +117,537 @@ public class MainActivity extends Activity {
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
 
-        params.setMargins(0, 7, 0, 7);
-
-        root.addView(button, params);
-
-        return button;
-    }
-
-    private Button actionButton(String text) {
-
-        Button button = new Button(this);
-
-        button.setText(text);
-        button.setTextSize(17);
-        button.setAllCaps(false);
-
-        LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-
-        params.setMargins(0, 8, 0, 8);
-
-        root.addView(button, params);
-
-        return button;
-    }
-
-    private void addBackButton() {
-
-        Button back = actionButton("← Back to Dashboard");
-
-        back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDashboard();
-            }
-        });
-    }
-
-    private void addSpace(int height) {
-
-        Space space = new Space(this);
+        params.setMargins(
+                0,
+                6,
+                0,
+                6
+        );
 
         root.addView(
-                space,
-                new LinearLayout.LayoutParams(
-                        1,
-                        height
-                )
+                button,
+                params
+        );
+
+        return button;
+    }
+
+    // ==============================
+    // BACK BUTTON
+    // ==============================
+
+    private void backButton() {
+
+        Button back =
+                button("← Back to Dashboard");
+
+        back.setOnClickListener(
+                v -> dashboard()
         );
     }
 
-    private void toast(String message) {
+    // ==============================
+    // TOAST
+    // ==============================
+
+    private void message(String value) {
 
         Toast.makeText(
-                MainActivity.this,
-                message,
+                this,
+                value,
                 Toast.LENGTH_SHORT
         ).show();
     }
 
-    // ============================================================
-    // DASHBOARD
-    // ============================================================
+    // ==============================
+    // MONEY FORMAT
+    // ==============================
 
-    private void showDashboard() {
+    private String money(double value) {
 
-        createRoot();
-
-        root.addView(title("AbhiBoT 2.0"));
-
-        TextView subtitle =
-                text("Virtual Trading Dashboard");
-
-        subtitle.setGravity(Gravity.CENTER);
-        subtitle.setTextSize(17);
-
-        root.addView(subtitle);
-
-        addSpace(10);
-
-        Button virtualTrading =
-                menuButton("📊  Virtual Trading");
-
-        virtualTrading.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showVirtualTrading();
-                    }
-                }
-        );
-
-        Button watchlist =
-                menuButton("⭐  Watchlist");
-
-        watchlist.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showWatchlist();
-                    }
-                }
-        );
-
-        Button startTrade =
-                menuButton("⚡  Start Trade");
-
-        startTrade.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showStartTrade();
-                    }
-                }
-        );
-
-        Button diaryButton =
-                menuButton("📒  Trading Diary");
-
-        diaryButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showDiary();
-                    }
-                }
-        );
-
-        Button profile =
-                menuButton("👤  Profile");
-
-        profile.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showProfile();
-                    }
-                }
-        );
-
-        Button settings =
-                menuButton("⚙  Settings");
-
-        settings.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showSettings();
-                    }
-                }
-        );
-
-        addSpace(20);
-
-        root.addView(heading("Virtual Account"));
-
-        root.addView(
-                text(
-                        "Available Balance: ₹" +
-                        String.format("%.2f", balance)
-                )
-        );
-
-        root.addView(
-                text("Mode: PAPER / VIRTUAL TRADING")
+        return String.format(
+                java.util.Locale.US,
+                "%.2f",
+                value
         );
     }
 
-    // ============================================================
-    // VIRTUAL TRADING
-    // ============================================================
+    // ==============================
+    // DASHBOARD
+    // ==============================
 
-    private void showVirtualTrading() {
+    private void dashboard() {
 
-        createRoot();
-
-        root.addView(title("Virtual Trading"));
-
-        root.addView(
-                text("Practice trading with virtual money.")
-        );
-
-        root.addView(
-                heading("Account Balance")
-        );
+        setup();
 
         root.addView(
                 text(
-                        "₹" +
-                        String.format("%.2f", balance)
+                        "AbhiBoT 2.0",
+                        30,
+                        true
                 )
         );
 
         root.addView(
-                heading("Market")
+                text(
+                        "Virtual Trading Dashboard",
+                        18,
+                        false
+                )
+        );
+
+        Button virtualTrading =
+                button(
+                        "📊  Virtual Trading"
+                );
+
+        virtualTrading.setOnClickListener(
+                v -> virtualTrading()
+        );
+
+        Button watchlist =
+                button(
+                        "⭐  Watchlist"
+                );
+
+        watchlist.setOnClickListener(
+                v -> watchlist()
+        );
+
+        Button startTrade =
+                button(
+                        "⚡  Start Trade"
+                );
+
+        startTrade.setOnClickListener(
+                v -> startTrade()
+        );
+
+        Button diary =
+                button(
+                        "📒  Trading Diary"
+                );
+
+        diary.setOnClickListener(
+                v -> diary()
+        );
+
+        Button profile =
+                button(
+                        "👤  Profile"
+                );
+
+        profile.setOnClickListener(
+                v -> profile()
+        );
+
+        Button settings =
+                button(
+                        "⚙  Settings"
+                );
+
+        settings.setOnClickListener(
+                v -> settings()
+        );
+
+        root.addView(
+                text(
+                        "Virtual Balance: ₹"
+                                + money(balance),
+                        17,
+                        true
+                )
+        );
+
+        root.addView(
+                text(
+                        "Mode: PAPER / VIRTUAL TRADING",
+                        17,
+                        false
+                )
+        );
+    }
+
+    // ==============================
+    // VIRTUAL TRADING
+    // ==============================
+
+    private void virtualTrading() {
+
+        setup();
+
+        root.addView(
+                text(
+                        "Virtual Trading",
+                        28,
+                        true
+                )
+        );
+
+        root.addView(
+                text(
+                        "Balance: ₹"
+                                + money(balance),
+                        18,
+                        false
+                )
+        );
+
+        root.addView(
+                text(
+                        "Select Instrument",
+                        21,
+                        true
+                )
         );
 
         Button nifty =
-                actionButton("NIFTY 50   ₹24,500");
+                button(
+                        "NIFTY 50   ₹24,500"
+                );
 
         nifty.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectedSymbol = "NIFTY 50";
-                        selectedPrice = 24500;
-                        toast("NIFTY 50 selected");
-                    }
+                v -> {
+
+                    symbol = "NIFTY 50";
+
+                    price = 24500;
+
+                    message(
+                            "NIFTY 50 selected"
+                    );
+
+                    virtualTrading();
                 }
         );
 
-        Button bank =
-                actionButton("BANK NIFTY   ₹55,000");
+        Button bankNifty =
+                button(
+                        "BANK NIFTY   ₹55,000"
+                );
 
-        bank.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectedSymbol = "BANK NIFTY";
-                        selectedPrice = 55000;
-                        toast("BANK NIFTY selected");
-                    }
+        bankNifty.setOnClickListener(
+                v -> {
+
+                    symbol = "BANK NIFTY";
+
+                    price = 55000;
+
+                    message(
+                            "BANK NIFTY selected"
+                    );
+
+                    virtualTrading();
                 }
         );
 
         Button sensex =
-                actionButton("SENSEX   ₹80,000");
+                button(
+                        "SENSEX   ₹80,000"
+                );
 
         sensex.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectedSymbol = "SENSEX";
-                        selectedPrice = 80000;
-                        toast("SENSEX selected");
-                    }
-                }
-        );
+                v -> {
 
-        root.addView(
-                heading("Selected Instrument")
+                    symbol = "SENSEX";
+
+                    price = 80000;
+
+                    message(
+                            "SENSEX selected"
+                    );
+
+                    virtualTrading();
+                }
         );
 
         root.addView(
                 text(
-                        selectedSymbol +
-                        "\nPrice: ₹" +
-                        String.format("%.2f", selectedPrice)
+                        "Selected: "
+                                + symbol
+                                + "  ₹"
+                                + money(price),
+                        19,
+                        true
                 )
         );
 
-        addSpace(10);
+        Button openTrade =
+                button(
+                        "⚡ Open Trade"
+                );
 
-        Button trade =
-                actionButton("⚡ Open Trade");
-
-        trade.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showStartTrade();
-                    }
-                }
+        openTrade.setOnClickListener(
+                v -> startTrade()
         );
 
-        addBackButton();
+        backButton();
     }
 
-    // ============================================================
+    // ==============================
     // START TRADE
-    // ============================================================
+    // ==============================
 
-    private void showStartTrade() {
+    private void startTrade() {
 
-        createRoot();
-
-        root.addView(title("Start Trade"));
+        setup();
 
         root.addView(
-                text("Virtual order execution only")
-        );
-
-        root.addView(
-                heading("Instrument")
+                text(
+                        "Start Trade",
+                        28,
+                        true
+                )
         );
 
         root.addView(
                 text(
-                        selectedSymbol +
-                        "\n₹" +
-                        String.format("%.2f", selectedPrice)
+                        symbol
+                                + "\nPrice: ₹"
+                                + money(price),
+                        18,
+                        false
                 )
         );
 
-        root.addView(
-                heading("Quantity")
-        );
-
-        final EditText quantityInput =
+        EditText quantity =
                 new EditText(this);
 
-        quantityInput.setHint("Enter quantity");
-        quantityInput.setText("1");
-        quantityInput.setInputType(
-                android.text.InputType.TYPE_CLASS_NUMBER
+        quantity.setHint(
+                "Enter Quantity"
         );
 
-        root.addView(
-                quantityInput,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
+        quantity.setText("1");
 
-        addSpace(10);
+        quantity.setInputType(2);
+
+        root.addView(quantity);
 
         Button buy =
-                actionButton("🟢 BUY");
+                button(
+                        "🟢 BUY"
+                );
 
         buy.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                v -> {
 
-                        int qty;
-
-                        try {
-                            qty = Integer.parseInt(
-                                    quantityInput
-                                            .getText()
-                                            .toString()
+                    int qty =
+                            getQuantity(
+                                    quantity
                             );
-                        } catch (Exception e) {
-                            toast("Enter valid quantity");
-                            return;
-                        }
 
-                        if (qty <= 0) {
-                            toast("Quantity must be greater than 0");
-                            return;
-                        }
-
-                        double amount =
-                                selectedPrice * qty;
-
-                        if (amount > balance) {
-                            toast("Insufficient virtual balance");
-                            return;
-                        }
-
-                        quantity = qty;
-                        balance -= amount;
-
-                        diary.add(
-                                "BUY | " +
-                                selectedSymbol +
-                                " | Qty: " +
-                                qty +
-                                " | Price: ₹" +
-                                String.format("%.2f", selectedPrice)
-                        );
-
-                        toast(
-                                "BUY order executed virtually"
-                        );
-
-                        showVirtualTrading();
+                    if (qty <= 0) {
+                        return;
                     }
+
+                    double amount =
+                            price * qty;
+
+                    if (amount > balance) {
+
+                        message(
+                                "Insufficient virtual balance"
+                        );
+
+                        return;
+                    }
+
+                    balance =
+                            balance - amount;
+
+                    trades.add(
+                            "BUY | "
+                                    + symbol
+                                    + " | Qty "
+                                    + qty
+                                    + " | ₹"
+                                    + money(price)
+                    );
+
+                    message(
+                            "Virtual BUY executed"
+                    );
+
+                    virtualTrading();
                 }
         );
 
         Button sell =
-                actionButton("🔴 SELL");
-
-        sell.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        int qty;
-
-                        try {
-                            qty = Integer.parseInt(
-                                    quantityInput
-                                            .getText()
-                                            .toString()
-                            );
-                        } catch (Exception e) {
-                            toast("Enter valid quantity");
-                            return;
-                        }
-
-                        if (qty <= 0) {
-                            toast("Quantity must be greater than 0");
-                            return;
-                        }
-
-                        double amount =
-                                selectedPrice * qty;
-
-                        balance += amount;
-
-                        diary.add(
-                                "SELL | " +
-                                selectedSymbol +
-                                " | Qty: " +
-                                qty +
-                                " | Price: ₹" +
-                                String.format("%.2f", selectedPrice)
-                        );
-
-                        toast(
-                                "SELL order executed virtually"
-                        );
-
-                        showVirtualTrading();
-                    }
-                }
-        );
-
-        addBackButton();
-    }
-
-    // ============================================================
-    // WATCHLIST
-    // ============================================================
-
-    private void showWatchlist() {
-
-        createRoot();
-
-        root.addView(title("Watchlist"));
-
-        root.addView(
-                text("Your selected market instruments")
-        );
-
-        addWatchItem(
-                "NIFTY 50",
-                "24,500.00"
-        );
-
-        addWatchItem(
-                "BANK NIFTY",
-                "55,000.00"
-        );
-
-        addWatchItem(
-                "SENSEX",
-                "80,000.00"
-        );
-
-        addWatchItem(
-                "FINNIFTY",
-                "26,000.00"
-        );
-
-        addWatchItem(
-                "MIDCAP SELECT",
-                "13,500.00"
-        );
-
-        addBackButton();
-    }
-
-    private void addWatchItem(
-            final String symbol,
-            final String price
-    ) {
-
-        Button button =
-                actionButton(
-                        "⭐ " +
-                        symbol +
-                        "\n₹" +
-                        price
+                button(
+                        "🔴 SELL"
                 );
 
-        button.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+        sell.setOnClickListener(
+                v -> {
 
-                        selectedSymbol = symbol;
+                    int qty =
+                            getQuantity(
+                                    quantity
+                            );
 
-                        try {
-                            selectedPrice =
-                                    Double.parseDouble(
-                                            price.replace(",", "")
-                                    );
-                        } catch (Exception e) {
-                            selectedPrice = 0;
-                        }
-
-                        toast(
-                                symbol +
-                                " selected"
-                        );
+                    if (qty <= 0) {
+                        return;
                     }
+
+                    balance =
+                            balance
+                                    + (price * qty);
+
+                    trades.add(
+                            "SELL | "
+                                    + symbol
+                                    + " | Qty "
+                                    + qty
+                                    + " | ₹"
+                                    + money(price)
+                    );
+
+                    message(
+                            "Virtual SELL executed"
+                    );
+
+                    virtualTrading();
+                }
+        );
+
+        backButton();
+    }
+
+    // ==============================
+    // QUANTITY
+    // ==============================
+
+    private int getQuantity(
+            EditText editText
+    ) {
+
+        try {
+
+            int quantity =
+                    Integer.parseInt(
+                            editText
+                                    .getText()
+                                    .toString()
+                                    .trim()
+                    );
+
+            if (quantity <= 0) {
+
+                message(
+                        "Quantity must be greater than 0"
+                );
+
+                return 0;
+            }
+
+            return quantity;
+
+        } catch (Exception e) {
+
+            message(
+                    "Enter a valid quantity"
+            );
+
+            return 0;
+        }
+    }
+
+    // ==============================
+    // WATCHLIST
+    // ==============================
+
+    private void watchlist() {
+
+        setup();
+
+        root.addView(
+                text(
+                        "⭐ Watchlist",
+                        28,
+                        true
+                )
+        );
+
+        watch(
+                "NIFTY 50",
+                24500
+        );
+
+        watch(
+                "BANK NIFTY",
+                55000
+        );
+
+        watch(
+                "SENSEX",
+                80000
+        );
+
+        watch(
+                "FINNIFTY",
+                26000
+        );
+
+        watch(
+                "MIDCAP SELECT",
+                13500
+        );
+
+        backButton();
+    }
+
+    private void watch(
+            String name,
+            double currentPrice
+    ) {
+
+        Button item =
+                button(
+                        name
+                                + "\n₹"
+                                + money(currentPrice)
+                );
+
+        item.setOnClickListener(
+                v -> {
+
+                    symbol = name;
+
+                    price = currentPrice;
+
+                    message(
+                            name
+                                    + " selected"
+                    );
+
+                    startTrade();
                 }
         );
     }
 
-    // ============================================================
+    // ==============================
     // TRADING DIARY
-    // ============================================================
+    // ==============================
 
-    private void showDiary() {
+    private void diary() {
 
-        createRoot();
+        setup();
 
-        root.addView(title("Trading Diary"));
+        root.addView(
+                text(
+                        "📒 Trading Diary",
+                        28,
+                        true
+                )
+        );
 
-        if (diary.size() == 0) {
+        if (trades.isEmpty()) {
 
             root.addView(
                     text(
-                            "No virtual trades yet.\n\n" +
-                            "Your BUY and SELL orders will appear here."
+                            "No trades recorded yet.",
+                            18,
+                            false
                     )
             );
 
@@ -638,137 +655,168 @@ public class MainActivity extends Activity {
 
             root.addView(
                     text(
-                            "Total recorded trades: " +
-                            diary.size()
+                            "Recorded Trades: "
+                                    + trades.size(),
+                            18,
+                            true
                     )
             );
 
-            for (String trade : diary) {
+            for (String trade : trades) {
 
-                TextView item =
-                        text("• " + trade);
-
-                item.setPadding(
-                        5,
-                        15,
-                        5,
-                        15
+                root.addView(
+                        text(
+                                "• " + trade,
+                                16,
+                                false
+                        )
                 );
-
-                root.addView(item);
             }
         }
 
-        addBackButton();
+        backButton();
     }
 
-    // ============================================================
+    // ==============================
     // PROFILE
-    // ============================================================
+    // ==============================
 
-    private void showProfile() {
+    private void profile() {
 
-        createRoot();
-
-        root.addView(title("Profile"));
-
-        root.addView(
-                heading("AbhiBoT User")
-        );
+        setup();
 
         root.addView(
                 text(
-                        "Account Type: Virtual Trading"
+                        "👤 Profile",
+                        28,
+                        true
                 )
         );
 
         root.addView(
                 text(
-                        "Trading Mode: PAPER"
+                        "Account: Virtual Trading",
+                        18,
+                        false
                 )
         );
 
         root.addView(
                 text(
-                        "Starting Balance: ₹1,00,000"
+                        "Current Balance: ₹"
+                                + money(balance),
+                        18,
+                        false
                 )
         );
 
         root.addView(
                 text(
-                        "Current Balance: ₹" +
-                        String.format("%.2f", balance)
+                        "Trades: "
+                                + trades.size(),
+                        18,
+                        false
                 )
         );
-
-        addSpace(15);
 
         Button reset =
-                actionButton("Reset Virtual Account");
+                button(
+                        "Reset Virtual Account"
+                );
 
         reset.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                v -> {
 
-                        balance = 100000;
-                        diary.clear();
+                    balance = 100000;
 
-                        toast(
-                                "Virtual account reset"
-                        );
+                    trades.clear();
 
-                        showProfile();
-                    }
+                    message(
+                            "Virtual account reset"
+                    );
+
+                    profile();
                 }
         );
 
-        addBackButton();
+        backButton();
     }
 
-    // ============================================================
+    // ==============================
     // SETTINGS
-    // ============================================================
+    // ==============================
 
-    private void showSettings() {
+    private void settings() {
 
-        createRoot();
-
-        root.addView(title("Settings"));
+        setup();
 
         root.addView(
-                heading("Trading Mode")
+                text(
+                        "⚙ Settings",
+                        28,
+                        true
+                )
         );
 
         root.addView(
                 text(
-                        "Current: VIRTUAL / PAPER TRADING"
+                        "Trading Mode: PAPER / VIRTUAL",
+                        18,
+                        false
                 )
         );
 
-        Button broker =
-                actionButton(
-                        "🔌 Broker API Configuration"
-                );
-
-        broker.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        toast(
-                                "Broker API will be added in a future update"
-                        );
-                    }
-                }
+        root.addView(
+                text(
+                        "AbhiBoT 2.0",
+                        18,
+                        false
+                )
         );
 
         Button alerts =
-                actionButton(
+                button(
                         "🔔 Alerts & Notifications"
                 );
 
         alerts.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public v
+                v -> message(
+                        "Alerts module selected"
+                )
+        );
+
+        Button security =
+                button(
+                        "🔐 Security"
+                );
+
+        security.setOnClickListener(
+                v -> message(
+                        "Security settings selected"
+                )
+        );
+
+        Button broker =
+                button(
+                        "🔌 Broker API Configuration"
+                );
+
+        broker.setOnClickListener(
+                v -> message(
+                        "Broker API configuration selected"
+                )
+        );
+
+        backButton();
+    }
+
+    // ==============================
+    // ANDROID BACK BUTTON
+    // ==============================
+
+    @Override
+    public void onBackPressed() {
+
+        dashboard();
+    }
+                        }
