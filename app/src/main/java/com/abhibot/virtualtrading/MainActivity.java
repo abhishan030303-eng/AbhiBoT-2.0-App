@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    LinearLayout mainLayout;
+    private LinearLayout mainLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
         setContentView(mainLayout);
     }
 
-    private void addButton(String text, final String message) {
+    private void addButton(final String text, final String message) {
 
         Button button = new Button(this);
         button.setText(text);
@@ -79,7 +79,5 @@ public class MainActivity extends Activity {
                 ).show();
             }
         });
-    }
-}        setContentView(layout);
     }
 }
